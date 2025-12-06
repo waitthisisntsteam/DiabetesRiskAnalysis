@@ -199,46 +199,47 @@ df_common_general = pd.concat([df_lifestyle_common_general, df_indicators_common
 # ============================================================================
 # ! VISUALIZATIONS - All 3 Datasets Combined !
 # ============================================================================
-# --- Figure 1: Age Group, Blood Pressure, and BMI (All 3 Datasets) ---
-fig1, axes1 = plt.subplots(1, 3, figsize=(18, 5))
-
-# 1a: Diabetes prevalence by Age Group
-ax1a = axes1[0]
+# --- Figure 1a: Diabetes prevalence by Age Group ---
+fig1a, ax1a = plt.subplots(figsize=(10, 6))
 age_order = ['18-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', 'Over 80']
 diabetes_by_age = df_common_general.groupby('Age_Group')['Diabetes_Binary'].mean() * 100
 diabetes_by_age = diabetes_by_age.reindex(age_order).dropna()
 diabetes_by_age.plot(kind='bar', ax=ax1a, color='steelblue', edgecolor='black')
-ax1a.set_title('Diabetes Prevalence by Age Group', fontsize=12, fontweight='bold')
+ax1a.set_title('Diabetes Prevalence by Age Group (All 3 Datasets)', fontsize=14, fontweight='bold')
 ax1a.set_xlabel('Age Group')
 ax1a.set_ylabel('Diabetes Prevalence (%)')
 ax1a.tick_params(axis='x', rotation=45)
+plt.tight_layout()
+plt.savefig('./results/viz1a_age_group.png', dpi=150, bbox_inches='tight')
+plt.show()
 
-# 1b: Diabetes prevalence by HighBP
-ax1b = axes1[1]
+# --- Figure 1b: Diabetes prevalence by HighBP ---
+fig1b, ax1b = plt.subplots(figsize=(8, 6))
 bp_labels = ['Normal BP', 'High BP']
 diabetes_by_bp = df_common_general.groupby('HighBP')['Diabetes_Binary'].mean() * 100
 colors_bp = ['lightblue', 'coral']
 bars = ax1b.bar(bp_labels, diabetes_by_bp.values, color=colors_bp, edgecolor='black')
-ax1b.set_title('Diabetes Prevalence by Blood Pressure', fontsize=12, fontweight='bold')
+ax1b.set_title('Diabetes Prevalence by Blood Pressure (All 3 Datasets)', fontsize=14, fontweight='bold')
 ax1b.set_xlabel('Blood Pressure Status')
 ax1b.set_ylabel('Diabetes Prevalence (%)')
 for i, v in enumerate(diabetes_by_bp.values):
     ax1b.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
+plt.tight_layout()
+plt.savefig('./results/viz1b_blood_pressure.png', dpi=150, bbox_inches='tight')
+plt.show()
 
-# 1c: BMI distribution by Diabetes status
-ax1c = axes1[2]
+# --- Figure 1c: BMI distribution by Diabetes status ---
+fig1c, ax1c = plt.subplots(figsize=(8, 6))
 df_no_diabetes = df_common_general[df_common_general['Diabetes_Binary'] == 0]['BMI']
 df_diabetes = df_common_general[df_common_general['Diabetes_Binary'] == 1]['BMI']
 bp_box = ax1c.boxplot([df_no_diabetes.dropna(), df_diabetes.dropna()], labels=['No Diabetes', 'Diabetes'], patch_artist=True)
 bp_box['boxes'][0].set_facecolor('lightgreen')
-bp_box['boxes'][1].set_facecolor('salmon')
-ax1c.set_title('BMI Distribution by Diabetes Status', fontsize=12, fontweight='bold')
+bp_box['boxes'][1].set_facecolor('teal')
+ax1c.set_title('BMI Distribution by Diabetes Status (All 3 Datasets)', fontsize=14, fontweight='bold')
 ax1c.set_xlabel('Diabetes Status')
 ax1c.set_ylabel('BMI')
-
-plt.suptitle('Key Health Indicators vs Diabetes Prevalence (All 3 Datasets)', fontsize=14, fontweight='bold', y=1.02)
 plt.tight_layout()
-plt.savefig('./results/viz1_key_indicators.png', dpi=150, bbox_inches='tight')
+plt.savefig('./results/viz1c_bmi_distribution.png', dpi=150, bbox_inches='tight')
 plt.show()
 # ============================================================================
 
@@ -248,68 +249,64 @@ plt.show()
 # ============================================================================
 # ! VISUALIZATIONS - Lifestyle Factors (2 Datasets Only) !
 # ============================================================================
-# --- Figure 2: Lifestyle Factors (Smoker & Physically Active) ---
-fig2, axes2 = plt.subplots(1, 2, figsize=(14, 5))
-
-# 2a: Diabetes prevalence by Smoker status
-ax2a = axes2[0]
+# --- Figure 2a: Diabetes prevalence by Smoker status ---
+fig2a, ax2a = plt.subplots(figsize=(8, 6))
 smoker_labels = ['Non-Smoker', 'Smoker']
 diabetes_by_smoker = df_common.groupby('Smoker')['Diabetes_Binary'].mean() * 100
 colors_smoker = ['lightgreen', 'salmon']
 bars = ax2a.bar(smoker_labels, diabetes_by_smoker.values, color=colors_smoker, edgecolor='black')
-ax2a.set_title('Diabetes Prevalence by Smoking Status', fontsize=12, fontweight='bold')
+ax2a.set_title('Diabetes Prevalence by Smoking Status', fontsize=14, fontweight='bold')
 ax2a.set_xlabel('Smoking Status')
 ax2a.set_ylabel('Diabetes Prevalence (%)')
 for i, v in enumerate(diabetes_by_smoker.values):
     ax2a.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
+plt.tight_layout()
+plt.savefig('./results/viz2a_smoking_status.png', dpi=150, bbox_inches='tight')
+plt.show()
 
-# 2b: Diabetes prevalence by Physical Activity
-ax2b = axes2[1]
+# --- Figure 2b: Diabetes prevalence by Physical Activity ---
+fig2b, ax2b = plt.subplots(figsize=(8, 6))
 phys_labels = ['Not Active', 'Physically Active']
 diabetes_by_phys = df_common.groupby('Physically_Active')['Diabetes_Binary'].mean() * 100
-colors_phys = ['salmon', 'lightgreen']
+colors_phys = ['lightblue', 'lightgreen']
 bars = ax2b.bar(phys_labels, diabetes_by_phys.values, color=colors_phys, edgecolor='black')
-ax2b.set_title('Diabetes Prevalence by Physical Activity', fontsize=12, fontweight='bold')
+ax2b.set_title('Diabetes Prevalence by Physical Activity', fontsize=14, fontweight='bold')
 ax2b.set_xlabel('Physical Activity Status')
 ax2b.set_ylabel('Diabetes Prevalence (%)')
 for i, v in enumerate(diabetes_by_phys.values):
     ax2b.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
-
-plt.suptitle('Lifestyle Factors: Smoking & Physical Activity vs Diabetes', fontsize=14, fontweight='bold', y=1.02)
 plt.tight_layout()
-plt.savefig('./results/viz2_lifestyle_factors.png', dpi=150, bbox_inches='tight')
+plt.savefig('./results/viz2b_physical_activity.png', dpi=150, bbox_inches='tight')
 plt.show()
 
-# --- Figure 3: Additional Health Indicators (Cholesterol - 2 Datasets Only) - BINARY ---
-fig3, axes3 = plt.subplots(1, 2, figsize=(14, 5))
-
-# 3a: Diabetes prevalence by HighChol (Binary: Normal vs High)
-ax3a = axes3[0]
+# --- Figure 3a: Diabetes prevalence by HighChol (Binary: Normal vs High) ---
+fig3a, ax3a = plt.subplots(figsize=(8, 6))
 chol_labels = ['Normal Chol', 'High Chol']
 diabetes_by_chol = df_common.groupby('HighChol')['Diabetes_Binary'].mean() * 100
 colors_chol = ['lightgreen', 'coral']
 bars = ax3a.bar(chol_labels, diabetes_by_chol.values, color=colors_chol, edgecolor='black')
-ax3a.set_title('Diabetes Prevalence by Cholesterol Status', fontsize=12, fontweight='bold')
+ax3a.set_title('Diabetes Prevalence by Cholesterol Status', fontsize=14, fontweight='bold')
 ax3a.set_xlabel('Cholesterol Status')
 ax3a.set_ylabel('Diabetes Prevalence (%)')
 for i, v in enumerate(diabetes_by_chol.values):
     ax3a.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
+plt.tight_layout()
+plt.savefig('./results/viz3a_cholesterol_status.png', dpi=150, bbox_inches='tight')
+plt.show()
 
-# 3b: Diabetes prevalence by Heart Disease
-ax3b = axes3[1]
+# --- Figure 3b: Diabetes prevalence by Heart Disease ---
+fig3b, ax3b = plt.subplots(figsize=(8, 6))
 heart_labels = ['No Heart Disease', 'Heart Disease']
 diabetes_by_heart = df_common.groupby('Heart_Disease_or_Attack')['Diabetes_Binary'].mean() * 100
-colors_heart = ['lightgreen', 'salmon']
+colors_heart = ['lightgreen', 'coral']
 bars = ax3b.bar(heart_labels, diabetes_by_heart.values, color=colors_heart, edgecolor='black')
-ax3b.set_title('Diabetes Prevalence by Heart Disease History', fontsize=12, fontweight='bold')
+ax3b.set_title('Diabetes Prevalence by Heart Disease History', fontsize=14, fontweight='bold')
 ax3b.set_xlabel('Heart Disease Status')
 ax3b.set_ylabel('Diabetes Prevalence (%)')
 for i, v in enumerate(diabetes_by_heart.values):
     ax3b.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
-
-plt.suptitle('Health Indicators: Cholesterol & Heart Disease vs Diabetes', fontsize=14, fontweight='bold', y=1.02)
 plt.tight_layout()
-plt.savefig('./results/viz3_health_indicators.png', dpi=150, bbox_inches='tight')
+plt.savefig('./results/viz3b_heart_disease.png', dpi=150, bbox_inches='tight')
 plt.show()
 # ============================================================================
 
@@ -319,37 +316,35 @@ plt.show()
 # ============================================================================
 # ! VISUALIZATIONS - Surprising/Shocking Factors (2 Datasets Only) !
 # ============================================================================
-# --- Figure 4: Surprising Factors (Education Level & Income Level) ---
-fig4, axes4 = plt.subplots(1, 2, figsize=(14, 5))
-
-# 4a: Diabetes prevalence by Education Level
-ax4a = axes4[0]
+# --- Figure 4a: Diabetes prevalence by Education Level ---
+fig4a, ax4a = plt.subplots(figsize=(10, 6))
 edu_order = ['No Formal', 'Elementary', 'Some High School', 'High School', 'Some College', 'College Graduate']
 diabetes_by_edu = df_common.groupby('Education_Level')['Diabetes_Binary'].mean() * 100
 diabetes_by_edu = diabetes_by_edu.reindex(edu_order).dropna()
 bars = diabetes_by_edu.plot(kind='bar', ax=ax4a, color='mediumpurple', edgecolor='black')
-ax4a.set_title('Diabetes Prevalence by Education Level', fontsize=12, fontweight='bold')
+ax4a.set_title('Diabetes Prevalence by Education Level', fontsize=14, fontweight='bold')
 ax4a.set_xlabel('Education Level')
 ax4a.set_ylabel('Diabetes Prevalence (%)')
 ax4a.tick_params(axis='x', rotation=45)
 for i, v in enumerate(diabetes_by_edu.values):
     ax4a.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=9)
+plt.tight_layout()
+plt.savefig('./results/viz4a_education_level.png', dpi=150, bbox_inches='tight')
+plt.show()
 
-# 4b: Diabetes prevalence by Income Level
-ax4b = axes4[1]
+# --- Figure 4b: Diabetes prevalence by Income Level ---
+fig4b, ax4b = plt.subplots(figsize=(8, 6))
 income_order = ['Low', 'Medium', 'High']
 diabetes_by_income = df_common.groupby('Income_Level')['Diabetes_Binary'].mean() * 100
 diabetes_by_income = diabetes_by_income.reindex(income_order).dropna()
 bars = diabetes_by_income.plot(kind='bar', ax=ax4b, color='teal', edgecolor='black')
-ax4b.set_title('Diabetes Prevalence by Income Level', fontsize=12, fontweight='bold')
+ax4b.set_title('Diabetes Prevalence by Income Level', fontsize=14, fontweight='bold')
 ax4b.set_xlabel('Income Level')
 ax4b.set_ylabel('Diabetes Prevalence (%)')
 ax4b.tick_params(axis='x', rotation=0)
 for i, v in enumerate(diabetes_by_income.values):
     ax4b.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=9)
-
-plt.suptitle('SURPRISING: Education & Income vs Diabetes Prevalence', fontsize=14, fontweight='bold', y=1.02)
 plt.tight_layout()
-plt.savefig('./results/viz4_surprising_factors.png', dpi=150, bbox_inches='tight')
+plt.savefig('./results/viz4b_income_level.png', dpi=150, bbox_inches='tight')
 plt.show()
 # ============================================================================
