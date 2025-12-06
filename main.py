@@ -217,7 +217,7 @@ explode_pie = (0, 0.05)  # Slightly explode the Diabetes slice
 ax1.pie(diabetes_counts, labels=labels_pie, colors=colors_pie, explode=explode_pie,
         autopct='%1.1f%%', startangle=90, shadow=True,
         textprops={'fontsize': 12, 'fontweight': 'bold'})
-ax1.set_title('Overall Diabetes Prevalence (All 3 Datasets)', fontsize=14, fontweight='bold')
+ax1.set_title('Overall Diabetes Prevalence', fontsize=14, fontweight='bold')
 plt.tight_layout()
 plt.savefig('./results/viz1_pie_diabetes_prevalence.png', dpi=150, bbox_inches='tight')
 # ============================================================================
