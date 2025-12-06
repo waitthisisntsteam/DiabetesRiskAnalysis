@@ -156,6 +156,11 @@ df_healthcare['HighBP'] = (df_healthcare['DiastolicBP'] >= 80).astype(int)
 # df_lifestyle: HighChol = 1 if Cholesterol >= 200, else 0
 df_lifestyle['HighChol'] = (df_lifestyle['Cholesterol'] >= 200).astype(int)
 # df_indicators: Already has HighChol column (0/1)
+
+# > Clean datasets by removing NaN values from key columns
+df_lifestyle = df_lifestyle.dropna()
+df_indicators = df_indicators.dropna()
+df_healthcare = df_healthcare.dropna()
 # ============================================================================
 
 
@@ -197,154 +202,259 @@ df_common_general = pd.concat([df_lifestyle_common_general, df_indicators_common
 
 
 # ============================================================================
-# ! VISUALIZATIONS - All 3 Datasets Combined !
+# ! VISUALIZATIONS !
 # ============================================================================
-# --- Figure 1a: Diabetes prevalence by Age Group ---
-fig1a, ax1a = plt.subplots(figsize=(10, 6))
+
+# ============================================================================
+# ! SECTION 1: Overview - The Big Picture !
+# ============================================================================
+# --- Figure 1: Pie Chart - Overall Diabetes Prevalence ---
+fig1, ax1 = plt.subplots(figsize=(8, 8))
+diabetes_counts = df_common_general['Diabetes_Binary'].value_counts()
+labels_pie = ['No Diabetes', 'Diabetes']
+colors_pie = ['mediumaquamarine', 'coral']
+explode_pie = (0, 0.05)  # Slightly explode the Diabetes slice
+ax1.pie(diabetes_counts, labels=labels_pie, colors=colors_pie, explode=explode_pie,
+        autopct='%1.1f%%', startangle=90, shadow=True,
+        textprops={'fontsize': 12, 'fontweight': 'bold'})
+ax1.set_title('Overall Diabetes Prevalence (All 3 Datasets)', fontsize=14, fontweight='bold')
+plt.tight_layout()
+plt.savefig('./results/viz1_pie_diabetes_prevalence.png', dpi=150, bbox_inches='tight')
+# ============================================================================
+
+
+
+
+# ============================================================================
+# ! SECTION 2: Demographics - Age & BMI !
+# ============================================================================
+# --- Figure 2: Diabetes prevalence by Age Group ---
+fig2, ax2 = plt.subplots(figsize=(10, 6))
 age_order = ['18-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', 'Over 80']
 diabetes_by_age = df_common_general.groupby('Age_Group')['Diabetes_Binary'].mean() * 100
-diabetes_by_age = diabetes_by_age.reindex(age_order).dropna()
-diabetes_by_age.plot(kind='bar', ax=ax1a, color='steelblue', edgecolor='black')
-ax1a.set_title('Diabetes Prevalence by Age Group (All 3 Datasets)', fontsize=14, fontweight='bold')
-ax1a.set_xlabel('Age Group')
-ax1a.set_ylabel('Diabetes Prevalence (%)')
-ax1a.tick_params(axis='x', rotation=45)
+diabetes_by_age = diabetes_by_age.reindex(age_order)
+diabetes_by_age.plot(kind='bar', ax=ax2, color='royalblue', edgecolor='black')
+ax2.set_title('Diabetes Prevalence by Age Group', fontsize=14, fontweight='bold')
+ax2.set_xlabel('Age Group')
+ax2.set_ylabel('Diabetes Prevalence (%)')
+ax2.tick_params(axis='x', rotation=45)
 plt.tight_layout()
-plt.savefig('./results/viz1a_age_group.png', dpi=150, bbox_inches='tight')
-plt.show()
+plt.savefig('./results/viz2_age_group.png', dpi=150, bbox_inches='tight')
 
-# --- Figure 1b: Diabetes prevalence by HighBP ---
-fig1b, ax1b = plt.subplots(figsize=(8, 6))
-bp_labels = ['Normal BP', 'High BP']
-diabetes_by_bp = df_common_general.groupby('HighBP')['Diabetes_Binary'].mean() * 100
-colors_bp = ['lightblue', 'coral']
-bars = ax1b.bar(bp_labels, diabetes_by_bp.values, color=colors_bp, edgecolor='black')
-ax1b.set_title('Diabetes Prevalence by Blood Pressure (All 3 Datasets)', fontsize=14, fontweight='bold')
-ax1b.set_xlabel('Blood Pressure Status')
-ax1b.set_ylabel('Diabetes Prevalence (%)')
-for i, v in enumerate(diabetes_by_bp.values):
-    ax1b.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
-plt.tight_layout()
-plt.savefig('./results/viz1b_blood_pressure.png', dpi=150, bbox_inches='tight')
-plt.show()
-
-# --- Figure 1c: BMI distribution by Diabetes status ---
-fig1c, ax1c = plt.subplots(figsize=(8, 6))
+# --- Figure 3: BMI distribution by Diabetes status ---
+fig3, ax3 = plt.subplots(figsize=(8, 6))
 df_no_diabetes = df_common_general[df_common_general['Diabetes_Binary'] == 0]['BMI']
 df_diabetes = df_common_general[df_common_general['Diabetes_Binary'] == 1]['BMI']
-bp_box = ax1c.boxplot([df_no_diabetes.dropna(), df_diabetes.dropna()], labels=['No Diabetes', 'Diabetes'], patch_artist=True)
-bp_box['boxes'][0].set_facecolor('lightgreen')
-bp_box['boxes'][1].set_facecolor('teal')
-ax1c.set_title('BMI Distribution by Diabetes Status (All 3 Datasets)', fontsize=14, fontweight='bold')
-ax1c.set_xlabel('Diabetes Status')
-ax1c.set_ylabel('BMI')
+bp_box = ax3.boxplot([df_no_diabetes, df_diabetes], labels=['No Diabetes', 'Diabetes'], patch_artist=True)
+bp_box['boxes'][0].set_facecolor('palegreen')
+bp_box['boxes'][1].set_facecolor('red')
+ax3.set_title('BMI Distribution by Diabetes Status', fontsize=14, fontweight='bold')
+ax3.set_xlabel('Diabetes Status')
+ax3.set_ylabel('BMI')
 plt.tight_layout()
-plt.savefig('./results/viz1c_bmi_distribution.png', dpi=150, bbox_inches='tight')
-plt.show()
+plt.savefig('./results/viz3_bmi_distribution.png', dpi=150, bbox_inches='tight')
 # ============================================================================
 
 
 
 
 # ============================================================================
-# ! VISUALIZATIONS - Lifestyle Factors (2 Datasets Only) !
+# ! SECTION 3: Health Indicators - BP, Cholesterol, Heart Disease !
 # ============================================================================
-# --- Figure 2a: Diabetes prevalence by Smoker status ---
-fig2a, ax2a = plt.subplots(figsize=(8, 6))
+# --- Figure 4: Diabetes prevalence by Blood Pressure ---
+fig4, ax4 = plt.subplots(figsize=(8, 6))
+bp_labels = ['Normal/Low BP', 'High BP']
+diabetes_by_bp = df_common_general.groupby('HighBP')['Diabetes_Binary'].mean() * 100
+colors_bp = ['lightblue', 'orange']
+bars = ax4.bar(bp_labels, diabetes_by_bp.values, color=colors_bp, edgecolor='black')
+ax4.set_title('Diabetes Prevalence by Blood Pressure', fontsize=14, fontweight='bold')
+ax4.set_xlabel('Blood Pressure Status')
+ax4.set_ylabel('Diabetes Prevalence (%)')
+for i, v in enumerate(diabetes_by_bp.values):
+    ax4.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
+plt.tight_layout()
+plt.savefig('./results/viz4_blood_pressure.png', dpi=150, bbox_inches='tight')
+
+# --- Figure 5: Diabetes prevalence by Cholesterol Status ---
+fig5, ax5 = plt.subplots(figsize=(8, 6))
+chol_labels = ['Normal/Low Cholesterol', 'High Cholesterol']
+diabetes_by_chol = df_common.groupby('HighChol')['Diabetes_Binary'].mean() * 100
+colors_chol = ['darkseagreen', 'salmon']
+bars = ax5.bar(chol_labels, diabetes_by_chol.values, color=colors_chol, edgecolor='black')
+ax5.set_title('Diabetes Prevalence by Cholesterol Status', fontsize=14, fontweight='bold')
+ax5.set_xlabel('Cholesterol Status')
+ax5.set_ylabel('Diabetes Prevalence (%)')
+for i, v in enumerate(diabetes_by_chol.values):
+    ax5.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
+plt.tight_layout()
+plt.savefig('./results/viz5_cholesterol_status.png', dpi=150, bbox_inches='tight')
+
+# --- Figure 6: Diabetes prevalence by Heart Disease ---
+fig6, ax6 = plt.subplots(figsize=(8, 6))
+heart_labels = ['No Heart Disease/Heart Attack', 'Heart Disease/Heart Attack']
+diabetes_by_heart = df_common.groupby('Heart_Disease_or_Attack')['Diabetes_Binary'].mean() * 100
+colors_heart = ['cadetblue', 'lightcoral']
+bars = ax6.bar(heart_labels, diabetes_by_heart.values, color=colors_heart, edgecolor='black')
+ax6.set_title('Diabetes Prevalence by Heart Disease/Heart Attack History', fontsize=14, fontweight='bold')
+ax6.set_xlabel('Heart Disease/Heart Attack Status')
+ax6.set_ylabel('Diabetes Prevalence (%)')
+for i, v in enumerate(diabetes_by_heart.values):
+    ax6.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
+plt.tight_layout()
+plt.savefig('./results/viz6_heart_disease.png', dpi=150, bbox_inches='tight')
+# ============================================================================
+
+
+
+
+# ============================================================================
+# ! SECTION 4: Lifestyle Factors - Smoking & Physical Activity !
+# ============================================================================
+# --- Figure 7: Diabetes prevalence by Smoking Status ---
+fig7, ax7 = plt.subplots(figsize=(8, 6))
 smoker_labels = ['Non-Smoker', 'Smoker']
 diabetes_by_smoker = df_common.groupby('Smoker')['Diabetes_Binary'].mean() * 100
-colors_smoker = ['lightgreen', 'salmon']
-bars = ax2a.bar(smoker_labels, diabetes_by_smoker.values, color=colors_smoker, edgecolor='black')
-ax2a.set_title('Diabetes Prevalence by Smoking Status', fontsize=14, fontweight='bold')
-ax2a.set_xlabel('Smoking Status')
-ax2a.set_ylabel('Diabetes Prevalence (%)')
+colors_smoker = ['mediumseagreen', 'firebrick']
+bars = ax7.bar(smoker_labels, diabetes_by_smoker.values, color=colors_smoker, edgecolor='black')
+ax7.set_title('Diabetes Prevalence by Smoking Status', fontsize=14, fontweight='bold')
+ax7.set_xlabel('Smoking Status')
+ax7.set_ylabel('Diabetes Prevalence (%)')
 for i, v in enumerate(diabetes_by_smoker.values):
-    ax2a.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
+    ax7.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
 plt.tight_layout()
-plt.savefig('./results/viz2a_smoking_status.png', dpi=150, bbox_inches='tight')
-plt.show()
+plt.savefig('./results/viz7_smoking_status.png', dpi=150, bbox_inches='tight')
 
-# --- Figure 2b: Diabetes prevalence by Physical Activity ---
-fig2b, ax2b = plt.subplots(figsize=(8, 6))
+# --- Figure 8: Diabetes prevalence by Physical Activity ---
+fig8, ax8 = plt.subplots(figsize=(8, 6))
 phys_labels = ['Not Active', 'Physically Active']
 diabetes_by_phys = df_common.groupby('Physically_Active')['Diabetes_Binary'].mean() * 100
-colors_phys = ['lightblue', 'lightgreen']
-bars = ax2b.bar(phys_labels, diabetes_by_phys.values, color=colors_phys, edgecolor='black')
-ax2b.set_title('Diabetes Prevalence by Physical Activity', fontsize=14, fontweight='bold')
-ax2b.set_xlabel('Physical Activity Status')
-ax2b.set_ylabel('Diabetes Prevalence (%)')
+colors_phys = ['indianred', 'limegreen']
+bars = ax8.bar(phys_labels, diabetes_by_phys.values, color=colors_phys, edgecolor='black')
+ax8.set_title('Diabetes Prevalence by Physical Activity', fontsize=14, fontweight='bold')
+ax8.set_xlabel('Physical Activity Status')
+ax8.set_ylabel('Diabetes Prevalence (%)')
 for i, v in enumerate(diabetes_by_phys.values):
-    ax2b.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
+    ax8.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
 plt.tight_layout()
-plt.savefig('./results/viz2b_physical_activity.png', dpi=150, bbox_inches='tight')
-plt.show()
-
-# --- Figure 3a: Diabetes prevalence by HighChol (Binary: Normal vs High) ---
-fig3a, ax3a = plt.subplots(figsize=(8, 6))
-chol_labels = ['Normal Chol', 'High Chol']
-diabetes_by_chol = df_common.groupby('HighChol')['Diabetes_Binary'].mean() * 100
-colors_chol = ['lightgreen', 'coral']
-bars = ax3a.bar(chol_labels, diabetes_by_chol.values, color=colors_chol, edgecolor='black')
-ax3a.set_title('Diabetes Prevalence by Cholesterol Status', fontsize=14, fontweight='bold')
-ax3a.set_xlabel('Cholesterol Status')
-ax3a.set_ylabel('Diabetes Prevalence (%)')
-for i, v in enumerate(diabetes_by_chol.values):
-    ax3a.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
-plt.tight_layout()
-plt.savefig('./results/viz3a_cholesterol_status.png', dpi=150, bbox_inches='tight')
-plt.show()
-
-# --- Figure 3b: Diabetes prevalence by Heart Disease ---
-fig3b, ax3b = plt.subplots(figsize=(8, 6))
-heart_labels = ['No Heart Disease', 'Heart Disease']
-diabetes_by_heart = df_common.groupby('Heart_Disease_or_Attack')['Diabetes_Binary'].mean() * 100
-colors_heart = ['lightgreen', 'coral']
-bars = ax3b.bar(heart_labels, diabetes_by_heart.values, color=colors_heart, edgecolor='black')
-ax3b.set_title('Diabetes Prevalence by Heart Disease History', fontsize=14, fontweight='bold')
-ax3b.set_xlabel('Heart Disease Status')
-ax3b.set_ylabel('Diabetes Prevalence (%)')
-for i, v in enumerate(diabetes_by_heart.values):
-    ax3b.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=10)
-plt.tight_layout()
-plt.savefig('./results/viz3b_heart_disease.png', dpi=150, bbox_inches='tight')
-plt.show()
+plt.savefig('./results/viz8_physical_activity.png', dpi=150, bbox_inches='tight')
 # ============================================================================
 
 
 
 
 # ============================================================================
-# ! VISUALIZATIONS - Surprising/Shocking Factors (2 Datasets Only) !
+# ! SECTION 5: Socioeconomic Factors - Education & Income !
 # ============================================================================
-# --- Figure 4a: Diabetes prevalence by Education Level ---
-fig4a, ax4a = plt.subplots(figsize=(10, 6))
+# --- Figure 9: Diabetes prevalence by Education Level ---
+fig9, ax9 = plt.subplots(figsize=(10, 6))
 edu_order = ['No Formal', 'Elementary', 'Some High School', 'High School', 'Some College', 'College Graduate']
 diabetes_by_edu = df_common.groupby('Education_Level')['Diabetes_Binary'].mean() * 100
-diabetes_by_edu = diabetes_by_edu.reindex(edu_order).dropna()
-bars = diabetes_by_edu.plot(kind='bar', ax=ax4a, color='mediumpurple', edgecolor='black')
-ax4a.set_title('Diabetes Prevalence by Education Level', fontsize=14, fontweight='bold')
-ax4a.set_xlabel('Education Level')
-ax4a.set_ylabel('Diabetes Prevalence (%)')
-ax4a.tick_params(axis='x', rotation=45)
+diabetes_by_edu = diabetes_by_edu.reindex(edu_order)
+bars = diabetes_by_edu.plot(kind='bar', ax=ax9, color='slateblue', edgecolor='black')
+ax9.set_title('Diabetes Prevalence by Education Level', fontsize=14, fontweight='bold')
+ax9.set_xlabel('Education Level')
+ax9.set_ylabel('Diabetes Prevalence (%)')
+ax9.tick_params(axis='x', rotation=45)
 for i, v in enumerate(diabetes_by_edu.values):
-    ax4a.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=9)
+    ax9.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=9)
 plt.tight_layout()
-plt.savefig('./results/viz4a_education_level.png', dpi=150, bbox_inches='tight')
-plt.show()
+plt.savefig('./results/viz9_education_level.png', dpi=150, bbox_inches='tight')
 
-# --- Figure 4b: Diabetes prevalence by Income Level ---
-fig4b, ax4b = plt.subplots(figsize=(8, 6))
+# --- Figure 10: Diabetes prevalence by Income Level ---
+fig10, ax10 = plt.subplots(figsize=(8, 6))
 income_order = ['Low', 'Medium', 'High']
 diabetes_by_income = df_common.groupby('Income_Level')['Diabetes_Binary'].mean() * 100
-diabetes_by_income = diabetes_by_income.reindex(income_order).dropna()
-bars = diabetes_by_income.plot(kind='bar', ax=ax4b, color='teal', edgecolor='black')
-ax4b.set_title('Diabetes Prevalence by Income Level', fontsize=14, fontweight='bold')
-ax4b.set_xlabel('Income Level')
-ax4b.set_ylabel('Diabetes Prevalence (%)')
-ax4b.tick_params(axis='x', rotation=0)
+diabetes_by_income = diabetes_by_income.reindex(income_order)
+bars = diabetes_by_income.plot(kind='bar', ax=ax10, color='darkcyan', edgecolor='black')
+ax10.set_xticklabels(['Lower Class', 'Middle Class', 'Upper Class'])
+ax10.set_title('Diabetes Prevalence by Income Level', fontsize=14, fontweight='bold')
+ax10.set_xlabel('Income Level')
+ax10.set_ylabel('Diabetes Prevalence (%)')
+ax10.tick_params(axis='x', rotation=0)
 for i, v in enumerate(diabetes_by_income.values):
-    ax4b.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=9)
+    ax10.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=9)
 plt.tight_layout()
-plt.savefig('./results/viz4b_income_level.png', dpi=150, bbox_inches='tight')
-plt.show()
+plt.savefig('./results/viz10_income_level.png', dpi=150, bbox_inches='tight')
+# ============================================================================
+
+
+
+
+# ============================================================================
+# ! SECTION 6: Combined Risk Factor Analysis !
+# ============================================================================
+# --- Figure 11: Combined Risk Factors (BP & Cholesterol) ---
+fig11, ax11 = plt.subplots(figsize=(12, 7))
+
+# Create risk factor combinations
+df_risk = df_common.copy()
+df_risk['Risk_Category'] = 'No Risk Factors'
+df_risk.loc[(df_risk['HighBP'] == 1) & (df_risk['HighChol'] == 0), 'Risk_Category'] = 'High BP Only'
+df_risk.loc[(df_risk['HighBP'] == 0) & (df_risk['HighChol'] == 1), 'Risk_Category'] = 'High Cholesterol Only'
+df_risk.loc[(df_risk['HighBP'] == 1) & (df_risk['HighChol'] == 1), 'Risk_Category'] = 'Both High BP & Cholesterol'
+
+# Calculate diabetes prevalence for each risk category
+risk_order = ['No Risk Factors', 'High BP Only', 'High Cholesterol Only', 'Both High BP & Cholesterol']
+diabetes_by_risk = df_risk.groupby('Risk_Category')['Diabetes_Binary'].mean() * 100
+diabetes_by_risk = diabetes_by_risk.reindex(risk_order)
+
+# Create gradient colors from green (low risk) to red (high risk)
+colors_risk = ['seagreen', 'goldenrod', 'darkorange', 'darkred']
+bars = ax11.bar(risk_order, diabetes_by_risk.values, color=colors_risk, edgecolor='black', width=0.6)
+
+ax11.set_title('Diabetes Prevalence by Combined Risk Factors\n(High Blood Pressure & High Cholesterol)', fontsize=14, fontweight='bold')
+ax11.set_xlabel('Risk Factor Combination', fontsize=12)
+ax11.set_ylabel('Diabetes Prevalence (%)', fontsize=12)
+ax11.tick_params(axis='x', rotation=15)
+
+# Add value labels on bars
+for i, v in enumerate(diabetes_by_risk.values):
+    ax11.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=11, fontweight='bold')
+
+# Add a horizontal line showing overall average
+avg_prevalence = df_risk['Diabetes_Binary'].mean() * 100
+ax11.axhline(y=avg_prevalence, color='gray', linestyle='--', linewidth=1.5, label=f'Overall Average: {avg_prevalence:.1f}%')
+ax11.legend(loc='upper left')
+
+plt.tight_layout()
+plt.savefig('./results/viz11_combined_bp_cholesterol.png', dpi=150, bbox_inches='tight')
+
+# --- Figure 12: Stacked Bar Chart - Cumulative Risk Factor Count ---
+fig12, ax12 = plt.subplots(figsize=(10, 7))
+
+# Count how many risk factors each person has (HighBP, HighChol, Smoker, Not Physically Active)
+df_risk_count = df_common.copy()
+df_risk_count['Not_Active'] = (df_risk_count['Physically_Active'] == 0).astype(int)
+df_risk_count['Risk_Factor_Count'] = (df_risk_count['HighBP'] + df_risk_count['HighChol'] + 
+                                    df_risk_count['Smoker'] + df_risk_count['Not_Active'])
+
+# Group by risk factor count and diabetes status
+risk_count_diabetes = df_risk_count.groupby(['Risk_Factor_Count', 'Diabetes_Binary']).size().unstack(fill_value=0)
+
+# Calculate percentages for stacking
+risk_count_pct = risk_count_diabetes.div(risk_count_diabetes.sum(axis=1), axis=0) * 100
+
+# Create stacked bar chart
+x_labels = ['0 Risk Factors', '1 Risk Factor', '2 Risk Factors', '3 Risk Factors', '4 Risk Factors']
+x_positions = range(len(risk_count_pct))
+bottom_vals = risk_count_pct[0].values  # No Diabetes
+top_vals = risk_count_pct[1].values     # Diabetes
+
+bars1 = ax12.bar(x_positions, bottom_vals, color='mediumseagreen', edgecolor='black', label='No Diabetes')
+bars2 = ax12.bar(x_positions, top_vals, bottom=bottom_vals, color='tomato', edgecolor='black', label='Diabetes')
+
+# Add percentage labels on the diabetes portion
+for i, (b, t) in enumerate(zip(bottom_vals, top_vals)):
+    ax12.text(i, b + t/2, f'{t:.1f}%', ha='center', va='center', fontsize=10, fontweight='bold', color='white')
+
+ax12.set_xticks(x_positions)
+ax12.set_xticklabels(x_labels)
+ax12.set_xlabel('Number of Risk Factors\n(High BP, High Cholesterol, Smoker, Physically Inactive)', fontsize=11)
+ax12.set_ylabel('Percentage (%)', fontsize=12)
+ax12.set_title('Diabetes Prevalence by Cumulative Risk Factor Count', fontsize=14, fontweight='bold')
+ax12.legend(loc='upper left')
+ax12.set_ylim(0, 100)
+
+plt.tight_layout()
+plt.savefig('./results/viz12_cumulative_risk_factors.png', dpi=150, bbox_inches='tight')
 # ============================================================================
