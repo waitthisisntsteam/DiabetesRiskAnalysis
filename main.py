@@ -13,6 +13,16 @@ df_indicators = pd.read_csv('./datasets/diabetes_012_health_indicators_BRFSS2015
 # > Healthcare Diabetes Dataset...
 df_healthcare = pd.read_csv('./datasets/Healthcare-Diabetes.csv')
 # * Link: https://www.kaggle.com/datasets/nanditapore/healthcare-diabetes
+
+# Print original dataset sizes
+print("=" * 60)
+print("ORIGINAL DATASET SIZES (before cleaning):")
+print("=" * 60)
+print(f"df_lifestyle:  {len(df_lifestyle):,} rows")
+print(f"df_indicators: {len(df_indicators):,} rows")
+print(f"df_healthcare: {len(df_healthcare):,} rows")
+print(f"TOTAL:         {len(df_lifestyle) + len(df_indicators) + len(df_healthcare):,} rows")
+print("=" * 60)
 # ============================================================================
 
 
@@ -161,6 +171,16 @@ df_lifestyle['HighChol'] = (df_lifestyle['Cholesterol'] >= 200).astype(int)
 df_lifestyle = df_lifestyle.dropna()
 df_indicators = df_indicators.dropna()
 df_healthcare = df_healthcare.dropna()
+
+# Print dataset sizes after cleaning
+print("\n" + "=" * 60)
+print("DATASET SIZES AFTER DROPPING MISSING VALUES:")
+print("=" * 60)
+print(f"df_lifestyle:  {len(df_lifestyle):,} rows")
+print(f"df_indicators: {len(df_indicators):,} rows")
+print(f"df_healthcare: {len(df_healthcare):,} rows")
+print(f"TOTAL:         {len(df_lifestyle) + len(df_indicators) + len(df_healthcare):,} rows")
+print("=" * 60)
 # ============================================================================
 
 
@@ -196,6 +216,14 @@ df_healthcare_common_general = df_healthcare[common_columns_general].copy()
 df_healthcare_common_general['Source'] = 'healthcare'
 
 df_common_general = pd.concat([df_lifestyle_common_general, df_indicators_common_general, df_healthcare_common_general], ignore_index=True)
+
+# Print merged dataset sizes
+print("\n" + "=" * 60)
+print("MERGED DATASET SIZES:")
+print("=" * 60)
+print(f"df_common (lifestyle + indicators):         {len(df_common):,} rows")
+print(f"df_common_general (all 3 datasets):         {len(df_common_general):,} rows")
+print("=" * 60 + "\n")
 # ============================================================================
 
 
@@ -233,11 +261,12 @@ fig2, ax2 = plt.subplots(figsize=(10, 6))
 age_order = ['18-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', 'Over 80']
 diabetes_by_age = df_common_general.groupby('Age_Group')['Diabetes_Binary'].mean() * 100
 diabetes_by_age = diabetes_by_age.reindex(age_order)
-diabetes_by_age.plot(kind='bar', ax=ax2, color='royalblue', edgecolor='black')
+ax2.plot(diabetes_by_age.index, diabetes_by_age.values, marker='o', linewidth=2, markersize=8, color='royalblue')
 ax2.set_title('Diabetes Prevalence by Age Group', fontsize=14, fontweight='bold')
 ax2.set_xlabel('Age Group')
 ax2.set_ylabel('Diabetes Prevalence (%)')
 ax2.tick_params(axis='x', rotation=45)
+ax2.grid(True, linestyle='--', alpha=0.7)
 plt.tight_layout()
 plt.savefig('./results/viz2_age_group.png', dpi=150, bbox_inches='tight')
 
